@@ -3,6 +3,8 @@ import './App.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+/* eslint-disable no-unused-vars */
+
 function App() {
   const [giveaways, setGiveaways] = useState([]);
   const [search, setSearch] = useState('');
@@ -14,6 +16,7 @@ function App() {
     const saved = localStorage.getItem('favorites');
     return saved ? JSON.parse(saved) : [];
   });
+
   const [categories, setCategories] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -44,7 +47,7 @@ function App() {
     fetchData();
   }, [search, category, difficulty, sortBy, expiringIn]);
 
-  // Fetch categories + stats
+  // Fetch metadata
   useEffect(() => {
     const fetchMeta = async () => {
       try {
@@ -53,8 +56,11 @@ function App() {
           fetch(`${API_URL}/api/stats`)
         ]);
 
-        setCategories(await catsRes.json());
-        setStats(await statsRes.json());
+        const cats = await catsRes.json();
+        const statsData = await statsRes.json();
+
+        setCategories(cats);
+        setStats(statsData);
       } catch (err) {
         console.error(err);
       }
@@ -83,7 +89,10 @@ function App() {
       const update = () => {
         const ms = new Date(expiresAt) - Date.now();
 
-        if (ms <= 0) return setTime('Expired');
+        if (ms <= 0) {
+          setTime('Expired');
+          return;
+        }
 
         const days = Math.floor(ms / 86400000);
         const hours = Math.floor((ms % 86400000) / 3600000);
@@ -96,6 +105,7 @@ function App() {
 
       update();
       const interval = setInterval(update, 60000);
+
       return () => clearInterval(interval);
     }, [expiresAt]);
 
@@ -142,7 +152,7 @@ function App() {
               <TimeRemaining expiresAt={g.expiresAt} />
 
               <a href={g.url} target="_blank" rel="noreferrer">
-                Enter
+                Enter Giveaway
               </a>
             </div>
           ))
